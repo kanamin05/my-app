@@ -192,6 +192,28 @@ button.danger {
   gap: 12px;
 }
 
+.listing-grid {
+  max-height: 980px;
+  margin-top: 16px;
+  padding-right: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.listing-grid::-webkit-scrollbar {
+  width: 10px;
+}
+
+.listing-grid::-webkit-scrollbar-thumb {
+  background: rgba(109, 38, 19, 0.24);
+  border-radius: 999px;
+}
+
+.listing-grid::-webkit-scrollbar-track {
+  background: rgba(74, 56, 43, 0.08);
+  border-radius: 999px;
+}
+
 .listing-card,
 .transaction-card,
 .message {
@@ -304,5 +326,10 @@ dt,
   .detail-list dd {
     max-width: none;
     text-align: left;
+  }
+
+  .listing-grid {
+    max-height: 720px;
+    padding-right: 4px;
   }
 }
