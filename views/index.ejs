@@ -2,21 +2,183 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>修行者名簿</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keio Textbook Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>修行者名簿</h1>
-  <ul>
-    <% users.forEach(user => { %>
-      <li><%= user.name %>（<%= user.age ? user.age + '歳' : '年齢不詳' %>）</li>
-    <% }) %>
-  </ul>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Keio-only textbook exchange</p>
+      <h1>授業ごとの教科書事情まで見える、慶應生向けマーケット。</h1>
+      <p class="hero-copy">出品、一覧、詳細、編集、削除、キーワード検索、売却済み管理までを一通り揃えた。学部・キャンパス絞り込みと並び替えも入れてある。</p>
+      <div class="hero-stats">
+        <article>
+          <strong><%= users.length %></strong>
+          <span>登録ユーザー</span>
+        </article>
+        <article>
+          <strong><%= listings.length %></strong>
+          <span>表示中の出品</span>
+        </article>
+        <article>
+          <strong><%= transactions.length %></strong>
+          <span>進行中の取引</span>
+        </article>
+      </div>
+    </section>
 
-  <h2>新しい修行者を登録する</h2>
-  <form action="/users" method="post">
-    <input type="text" name="name" placeholder="名前" required>
-    <input type="number" name="age" placeholder="年齢" required>
-    <button type="submit">登録じゃ</button>
-  </form>
+    <section class="grid two-up">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>出品一覧</h2>
+          <p>キーワード検索、学部・キャンパス絞り込み、価格順・新着順に対応。</p>
+        </div>
+        <form id="search-form" class="stack">
+          <input type="text" name="q" placeholder="書名・説明・授業名で検索" value="<%= filters.q %>">
+          <input type="text" name="courseName" placeholder="授業名" value="<%= filters.courseName %>">
+          <input type="text" name="instructorName" placeholder="担当教員" value="<%= filters.instructorName %>">
+          <select name="faculty">
+            <option value="">全学部</option>
+            <% faculties.forEach(faculty => { %>
+              <option value="<%= faculty %>" <%= filters.faculty === faculty ? "selected" : "" %>><%= faculty %></option>
+            <% }) %>
+          </select>
+          <select name="campus">
+            <option value="">全キャンパス</option>
+            <% campuses.forEach(campus => { %>
+              <option value="<%= campus %>" <%= filters.campus === campus ? "selected" : "" %>><%= campus %></option>
+            <% }) %>
+          </select>
+          <select name="status">
+            <option value="">全ステータス</option>
+            <% transactionStatuses.forEach(status => { %>
+              <option value="<%= status %>" <%= filters.status === status ? "selected" : "" %>><%= status %></option>
+            <% }) %>
+          </select>
+          <select name="sort">
+            <% sortOptions.forEach(option => { %>
+              <option value="<%= option.value %>" <%= filters.sort === option.value ? "selected" : "" %>><%= option.label %></option>
+            <% }) %>
+          </select>
+          <button type="submit">一覧を更新</button>
+        </form>
+        <div id="listing-results" class="listing-grid">
+          <% listings.forEach(listing => { %>
+            <article class="listing-card">
+              <div class="listing-top">
+                <span class="status <%= String(listing.status).toLowerCase() %>"><%= listing.status %></span>
+                <strong>¥<%= listing.price.toLocaleString() %></strong>
+              </div>
+              <h3><a href="/listings/<%= listing.id %>"><%= listing.title %></a></h3>
+              <p><%= listing.courseName %> / <%= listing.instructorName %></p>
+              <p><%= listing.description %></p>
+              <dl>
+                <div><dt>状態</dt><dd><%= listing.condition %></dd></div>
+                <div><dt>書込</dt><dd><%= listing.markingType %></dd></div>
+                <div><dt>出品者</dt><dd><%= listing.sellerName %>（<%= listing.seller.faculty %>）</dd></div>
+                <div><dt>受渡</dt><dd><%= listing.meetingPlace %></dd></div>
+                <div><dt>キャンパス</dt><dd><%= listing.campus %></dd></div>
+                <div><dt>必須度</dt><dd><%= listing.requiredLevel %>/5</dd></div>
+              </dl>
+              <div class="card-actions">
+                <a class="button-link" href="/listings/<%= listing.id %>">詳細を見る</a>
+                <% if (listing.status !== "COMPLETED") { %>
+                  <button type="button" data-sold-button data-id="<%= listing.id %>">売却済みにする</button>
+                <% } %>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>教科書を出品</h2>
+          <p>教科書名、授業名、状態、書き込み、受け渡し場所、必須度まで登録する。</p>
+        </div>
+        <form id="listing-form" class="stack">
+          <input type="text" name="title" placeholder="教科書名" required>
+          <input type="number" name="price" min="0" placeholder="価格" required>
+          <textarea name="description" placeholder="説明" rows="4" required></textarea>
+          <input type="text" name="courseName" placeholder="授業名" required>
+          <input type="text" name="instructorName" placeholder="担当教員" required>
+          <select name="condition" required>
+            <option value="">本の状態</option>
+            <% listingConditions.forEach(condition => { %>
+              <option value="<%= condition %>"><%= condition %></option>
+            <% }) %>
+          </select>
+          <select name="markingType" required>
+            <option value="">書き込みの有無</option>
+            <% markingTypes.forEach(markingType => { %>
+              <option value="<%= markingType %>"><%= markingType %></option>
+            <% }) %>
+          </select>
+          <input type="text" name="meetingPlace" placeholder="受け渡し場所" required>
+          <input type="text" name="campus" placeholder="キャンパス 例: 日吉">
+          <input type="number" name="requiredLevel" min="1" max="5" placeholder="授業での必須度 1-5">
+          <textarea name="requiredComment" placeholder="実際どれくらい使ったか" rows="3"></textarea>
+          <select name="sellerId" required>
+            <option value="">出品者</option>
+            <% users.forEach(user => { %>
+              <option value="<%= user.id %>"><%= user.name %> / <%= user.faculty %> / <%= user.campus %></option>
+            <% }) %>
+          </select>
+          <button type="submit">出品する</button>
+        </form>
+        <p id="listing-feedback" class="feedback"></p>
+      </article>
+    </section>
+
+    <section class="grid two-up">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>慶應メールで登録</h2>
+          <p>`@keio.jp`、学部、キャンパス、空きコマを保持する。</p>
+        </div>
+        <form id="user-form" class="stack">
+          <input type="text" name="name" placeholder="氏名" required>
+          <input type="email" name="email" placeholder="xxx@keio.jp" required>
+          <input type="text" name="faculty" placeholder="学部" required>
+          <input type="text" name="campus" placeholder="所属キャンパス" required>
+          <input type="text" name="freePeriods" placeholder="空きコマ 例: 月3, 水4" required>
+          <button type="submit">登録する</button>
+        </form>
+        <p id="user-feedback" class="feedback"></p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>取引チャット</h2>
+          <p>購入希望後の受け渡し調整用。出品ステータス変更と連動する。</p>
+        </div>
+        <div class="transaction-list">
+          <% transactions.forEach(transaction => { %>
+            <article class="transaction-card">
+              <div class="listing-top">
+                <span class="status <%= String(transaction.status).toLowerCase() %>"><%= transaction.status %></span>
+                <strong><%= transaction.listing.title %></strong>
+              </div>
+              <p>買い手: <%= transaction.buyer.name %> / 売り手: <%= transaction.seller.name %></p>
+              <p>受け渡し案: <%= transaction.meetingPlan %></p>
+              <div class="messages">
+                <% transaction.messages.forEach(message => { %>
+                  <div class="message">
+                    <strong><%= message.sender.name %></strong>
+                    <span><%= message.body %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      </article>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
 </body>
 </html>

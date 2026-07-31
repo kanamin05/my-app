@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= listing.title %> | Keio Textbook Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero compact">
+      <p class="eyebrow">Listing detail</p>
+      <h1><%= listing.title %></h1>
+      <p class="hero-copy"><%= listing.courseName %> / <%= listing.instructorName %> / 出品日時 <%= new Date(listing.createdAt).toLocaleString("ja-JP") %></p>
+      <div class="hero-stats">
+        <article>
+          <strong>¥<%= listing.price.toLocaleString() %></strong>
+          <span>価格</span>
+        </article>
+        <article>
+          <strong><%= listing.status %></strong>
+          <span>取引状態</span>
+        </article>
+        <article>
+          <strong><%= listing.requiredLevel %>/5</strong>
+          <span>授業での必須度</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid two-up">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>商品詳細</h2>
+          <p>出品データと、実際にどれくらい必要だったかのコメントを確認できる。</p>
+        </div>
+        <dl class="detail-list">
+          <div><dt>教科書名</dt><dd><%= listing.title %></dd></div>
+          <div><dt>価格</dt><dd>¥<%= listing.price.toLocaleString() %></dd></div>
+          <div><dt>説明</dt><dd><%= listing.description %></dd></div>
+          <div><dt>授業名</dt><dd><%= listing.courseName %></dd></div>
+          <div><dt>担当教員</dt><dd><%= listing.instructorName %></dd></div>
+          <div><dt>状態</dt><dd><%= listing.condition %></dd></div>
+          <div><dt>書き込み</dt><dd><%= listing.markingType %></dd></div>
+          <div><dt>出品者名</dt><dd><%= listing.sellerName %>（<%= listing.seller.faculty %> / <%= listing.seller.campus %>）</dd></div>
+          <div><dt>受け渡し場所</dt><dd><%= listing.meetingPlace %></dd></div>
+          <div><dt>空きコマ</dt><dd><%= listing.seller.freePeriods %></dd></div>
+          <div><dt>取引状態</dt><dd><%= listing.status %></dd></div>
+          <div><dt>必須度コメント</dt><dd><%= listing.requiredComment || "未入力" %></dd></div>
+        </dl>
+        <div class="card-actions">
+          <a class="button-link" href="/">一覧に戻る</a>
+          <% if (listing.status !== "COMPLETED") { %>
+            <button type="button" data-sold-button data-id="<%= listing.id %>">売却済みにする</button>
+          <% } %>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>編集・削除</h2>
+          <p>このページから出品内容を更新、または削除できる。</p>
+        </div>
+        <form id="edit-listing-form" class="stack" data-listing-id="<%= listing.id %>">
+          <input type="text" name="title" value="<%= listing.title %>" required>
+          <input type="number" name="price" min="0" value="<%= listing.price %>" required>
+          <textarea name="description" rows="4" required><%= listing.description %></textarea>
+          <input type="text" name="courseName" value="<%= listing.courseName %>" required>
+          <input type="text" name="instructorName" value="<%= listing.instructorName %>" required>
+          <select name="condition" required>
+            <% listingConditions.forEach(condition => { %>
+              <option value="<%= condition %>" <%= listing.condition === condition ? "selected" : "" %>><%= condition %></option>
+            <% }) %>
+          </select>
+          <select name="markingType" required>
+            <% markingTypes.forEach(markingType => { %>
+              <option value="<%= markingType %>" <%= listing.markingType === markingType ? "selected" : "" %>><%= markingType %></option>
+            <% }) %>
+          </select>
+          <input type="text" name="meetingPlace" value="<%= listing.meetingPlace %>" required>
+          <input type="text" name="campus" value="<%= listing.campus %>">
+          <input type="number" name="requiredLevel" min="1" max="5" value="<%= listing.requiredLevel %>">
+          <textarea name="requiredComment" rows="3"><%= listing.requiredComment %></textarea>
+          <select name="sellerId" required>
+            <% users.forEach(user => { %>
+              <option value="<%= user.id %>" <%= listing.sellerId === user.id ? "selected" : "" %>><%= user.name %> / <%= user.faculty %> / <%= user.campus %></option>
+            <% }) %>
+          </select>
+          <select name="status">
+            <% transactionStatuses.forEach(status => { %>
+              <option value="<%= status %>" <%= listing.status === status ? "selected" : "" %>><%= status %></option>
+            <% }) %>
+          </select>
+          <button type="submit">編集内容を保存</button>
+          <button type="button" class="danger" data-delete-button data-id="<%= listing.id %>">この出品を削除</button>
+        </form>
+        <p id="detail-feedback" class="feedback"></p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>購入希望・チャット履歴</h2>
+        <p>必要ならここから購入希望を作り、その後のやり取りを確認する。</p>
+      </div>
+      <div class="grid two-up">
+        <form id="transaction-form" class="stack" data-listing-id="<%= listing.id %>">
+          <select name="buyerId" required>
+            <option value="">購入希望者</option>
+            <% users.forEach(user => { %>
+              <option value="<%= user.id %>"><%= user.name %> / <%= user.faculty %></option>
+            <% }) %>
+          </select>
+          <input type="text" name="meetingPlan" placeholder="受け渡し案" required>
+          <button type="submit">購入希望を送る</button>
+        </form>
+        <div class="transaction-list">
+          <% listing.transactions.forEach(transaction => { %>
+            <article class="transaction-card">
+              <div class="listing-top">
+                <span class="status <%= String(transaction.status).toLowerCase() %>"><%= transaction.status %></span>
+                <strong><%= transaction.buyer.name %></strong>
+              </div>
+              <p>受け渡し案: <%= transaction.meetingPlan %></p>
+              <div class="messages">
+                <% transaction.messages.forEach(message => { %>
+                  <div class="message">
+                    <strong><%= message.sender.name %></strong>
+                    <span><%= message.body %></span>
+                  </div>
+                <% }) %>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      </div>
+      <p id="transaction-feedback" class="feedback"></p>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>

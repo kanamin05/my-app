@@ -1,20 +1,103 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/prisma"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum ListingCondition {
+  NEW
+  GOOD
+  FAIR
+}
+
+enum MarkingType {
+  NONE
+  PENCIL
+  PEN
+  BOTH
+}
+
+enum TransactionStatus {
+  OPEN
+  RESERVED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
-  id   Int    @id @default(autoincrement())
-  name String
-  age Int?
+  id            Int           @id @default(autoincrement())
+  name          String
+  email         String        @unique
+  faculty       String
+  campus        String        @default("日吉")
+  freePeriods   String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  listings      Listing[]
+  purchases     Transaction[] @relation("BuyerTransactions")
+  sales         Transaction[] @relation("SellerTransactions")
+  sentMessages  Message[]     @relation("SentMessages")
+}
+
+model Listing {
+  id               Int               @id @default(autoincrement())
+  title            String
+  price            Int
+  description      String
+  courseName       String
+  instructorName   String
+  condition        ListingCondition
+  markingType      MarkingType
+  sellerName       String            @default("未設定")
+  meetingPlace     String            @default("未設定")
+  campus           String            @default("日吉")
+  requiredLevel    Int               @default(3)
+  requiredComment  String            @default("")
+  sellerId         Int
+  status           TransactionStatus @default(OPEN)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  seller           User              @relation(fields: [sellerId], references: [id])
+  transactions     Transaction[]
+
+  @@index([title])
+  @@index([courseName])
+  @@index([instructorName])
+  @@index([campus])
+  @@index([status])
+}
+
+model Transaction {
+  id          Int               @id @default(autoincrement())
+  listingId   Int
+  buyerId     Int
+  sellerId    Int
+  status      TransactionStatus @default(OPEN)
+  meetingPlan String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  listing     Listing           @relation(fields: [listingId], references: [id])
+  buyer       User              @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller      User              @relation("SellerTransactions", fields: [sellerId], references: [id])
+  messages    Message[]
+
+  @@index([listingId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+model Message {
+  id             Int         @id @default(autoincrement())
+  transactionId  Int
+  senderId       Int
+  body           String
+  createdAt      DateTime    @default(now())
+  transaction    Transaction @relation(fields: [transactionId], references: [id])
+  sender         User        @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([transactionId, createdAt])
 }
