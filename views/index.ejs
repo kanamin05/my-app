@@ -14,7 +14,7 @@
     <section class="hero">
       <p class="eyebrow">Keio-only textbook exchange</p>
       <h1>授業ごとの教科書事情まで見える、慶應生向けマーケット。</h1>
-      <p class="hero-copy">出品、一覧、詳細、編集、削除、キーワード検索、売却済み管理までを一通り揃えた。学部・キャンパス絞り込みと並び替えも入れてある。</p>
+      <p class="hero-copy">授業名、担当教員、学部、キャンパスから教科書を探して、状態や受け渡し場所を見ながらやり取りできる。</p>
       <div class="hero-stats">
         <article>
           <strong><%= users.length %></strong>
@@ -35,7 +35,7 @@
       <article class="panel spotlight">
         <div class="panel-head">
           <h2>Marketplace Snapshot</h2>
-          <p>提出用に、いま動いている市場の温度感が一目で伝わるようにした。</p>
+          <p>いま出ている教科書の傾向を、価格や学部分布からまとめて確認できる。</p>
         </div>
         <div class="snapshot-metrics">
           <article>
@@ -56,7 +56,7 @@
       <article class="panel chart-panel">
         <div class="panel-head">
           <h2>キャンパス分布</h2>
-          <p>どのキャンパスの出品が多いかを横棒で可視化。</p>
+          <p>どのキャンパスで受け渡ししやすい出品が多いかを見られる。</p>
         </div>
         <div class="chart-list">
           <% insights.campusDistribution.forEach(item => { %>
@@ -76,7 +76,7 @@
       <article class="panel chart-panel">
         <div class="panel-head">
           <h2>取引状態</h2>
-          <p>出品がどれだけ売却済み・取引中・公開中かを俯瞰する。</p>
+          <p>公開中、取引中、売却済みの件数をまとめて確認できる。</p>
         </div>
         <div class="chart-list">
           <% insights.statusDistribution.forEach(item => { %>
@@ -96,7 +96,7 @@
       <article class="panel">
         <div class="panel-head">
           <h2>必須度が高い教科書</h2>
-          <p>「買わされたけど使わなかった」を避けるための優先度メモ。</p>
+          <p>授業で使う頻度が高かった教科書を優先してチェックできる。</p>
         </div>
         <div class="priority-list">
           <% insights.topPriorityListings.forEach(item => { %>
@@ -116,7 +116,7 @@
       <article class="panel">
         <div class="panel-head">
           <h2>出品一覧</h2>
-          <p>キーワード検索、学部・キャンパス絞り込み、価格順・新着順に対応。</p>
+          <p>書名や授業名で探して、学部・キャンパス・価格順で絞り込める。</p>
         </div>
         <form id="search-form" class="stack">
           <input type="text" name="q" placeholder="書名・説明・授業名で検索" value="<%= filters.q %>">
@@ -179,7 +179,7 @@
       <article class="panel">
         <div class="panel-head">
           <h2>教科書を出品</h2>
-          <p>教科書名、授業名、状態、書き込み、受け渡し場所、必須度まで登録する。</p>
+          <p>教科書名、授業名、状態、受け渡し場所などを入力して出品する。</p>
         </div>
         <form id="listing-form" class="stack">
           <input type="text" name="title" placeholder="教科書名" required>
@@ -219,7 +219,7 @@
       <article class="panel">
         <div class="panel-head">
           <h2>慶應メールで登録</h2>
-          <p>`@keio.jp`、学部、キャンパス、空きコマを保持する。</p>
+          <p>`@keio.jp` のメール、学部、キャンパス、空きコマを入力する。</p>
         </div>
         <form id="user-form" class="stack">
           <input type="text" name="name" placeholder="氏名" required>
@@ -235,7 +235,7 @@
       <article class="panel">
         <div class="panel-head">
           <h2>取引チャット</h2>
-          <p>購入希望後の受け渡し調整用。出品ステータス変更と連動する。</p>
+          <p>購入希望の後に、受け渡し場所や時間を相談できる。</p>
         </div>
         <div class="transaction-list">
           <% transactions.forEach(transaction => { %>
