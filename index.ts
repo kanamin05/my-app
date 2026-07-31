@@ -416,6 +416,63 @@ function buildListingOrderBy(sort: unknown) {
   return { createdAt: "desc" };
 }
 
+function buildDashboardInsights(listings: any[], users: any[]) {
+  const campusMap = new Map<string, number>();
+  const statusMap = new Map<string, number>();
+
+  for (const listing of listings) {
+    campusMap.set(listing.campus, (campusMap.get(listing.campus) ?? 0) + 1);
+    statusMap.set(String(listing.status), (statusMap.get(String(listing.status)) ?? 0) + 1);
+  }
+
+  const campusDistribution = Array.from(campusMap.entries())
+    .map(([label, count]) => ({
+      label,
+      count,
+      ratio: listings.length > 0 ? Math.round((count / listings.length) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const statusDistribution = Array.from(statusMap.entries())
+    .map(([label, count]) => ({
+      label,
+      count,
+      ratio: listings.length > 0 ? Math.round((count / listings.length) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const averagePrice =
+    listings.length > 0 ? Math.round(listings.reduce((sum, listing) => sum + listing.price, 0) / listings.length) : 0;
+
+  const topPriorityListings = [...listings]
+    .sort((a, b) => b.requiredLevel - a.requiredLevel || b.price - a.price)
+    .slice(0, 3)
+    .map((listing) => ({
+      title: listing.title,
+      courseName: listing.courseName,
+      requiredLevel: listing.requiredLevel,
+      campus: listing.campus,
+    }));
+
+  const facultyCounts = users.reduce((acc: Record<string, number>, user: any) => {
+    acc[user.faculty] = (acc[user.faculty] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const topFaculty = Object.entries(facultyCounts)
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)[0] ?? { label: "未設定", count: 0 };
+
+  return {
+    averagePrice,
+    campusDistribution,
+    statusDistribution,
+    topPriorityListings,
+    topFaculty,
+  };
+}
+
 async function fetchListings(query: Record<string, unknown> = {}) {
   const sort = typeof query.sort === "string" ? query.sort : "newest";
 
@@ -541,6 +598,7 @@ app.get("/", async (req, res) => {
 
   const faculties = Array.from(new Set(users.map((user: any) => user.faculty)));
   const campuses = Array.from(new Set(users.map((user: any) => user.campus)));
+  const insights = buildDashboardInsights(listings, users);
 
   res.render("index", {
     users,
@@ -552,6 +610,7 @@ app.get("/", async (req, res) => {
     sortOptions,
     faculties,
     campuses,
+    insights,
     filters: {
       q: typeof req.query.q === "string" ? req.query.q : "",
       courseName: typeof req.query.courseName === "string" ? req.query.courseName : "",

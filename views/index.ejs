@@ -31,6 +31,87 @@
       </div>
     </section>
 
+    <section class="insight-grid">
+      <article class="panel spotlight">
+        <div class="panel-head">
+          <h2>Marketplace Snapshot</h2>
+          <p>提出用に、いま動いている市場の温度感が一目で伝わるようにした。</p>
+        </div>
+        <div class="snapshot-metrics">
+          <article>
+            <span>平均価格</span>
+            <strong>¥<%= insights.averagePrice.toLocaleString() %></strong>
+          </article>
+          <article>
+            <span>最多学部</span>
+            <strong><%= insights.topFaculty.label %></strong>
+          </article>
+          <article>
+            <span>学部人数</span>
+            <strong><%= insights.topFaculty.count %>人</strong>
+          </article>
+        </div>
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="panel-head">
+          <h2>キャンパス分布</h2>
+          <p>どのキャンパスの出品が多いかを横棒で可視化。</p>
+        </div>
+        <div class="chart-list">
+          <% insights.campusDistribution.forEach(item => { %>
+            <div class="chart-row">
+              <div class="chart-meta">
+                <strong><%= item.label %></strong>
+                <span><%= item.count %>件</span>
+              </div>
+              <div class="chart-bar">
+                <span style="width: <%= item.ratio %>%"></span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="panel-head">
+          <h2>取引状態</h2>
+          <p>出品がどれだけ売却済み・取引中・公開中かを俯瞰する。</p>
+        </div>
+        <div class="chart-list">
+          <% insights.statusDistribution.forEach(item => { %>
+            <div class="chart-row">
+              <div class="chart-meta">
+                <strong><%= item.label %></strong>
+                <span><%= item.count %>件</span>
+              </div>
+              <div class="chart-bar status-bar">
+                <span class="<%= String(item.label).toLowerCase() %>" style="width: <%= item.ratio %>%"></span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h2>必須度が高い教科書</h2>
+          <p>「買わされたけど使わなかった」を避けるための優先度メモ。</p>
+        </div>
+        <div class="priority-list">
+          <% insights.topPriorityListings.forEach(item => { %>
+            <article class="priority-card">
+              <span class="priority-score"><%= item.requiredLevel %>/5</span>
+              <div>
+                <strong><%= item.title %></strong>
+                <p><%= item.courseName %> / <%= item.campus %></p>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      </article>
+    </section>
+
     <section class="grid two-up">
       <article class="panel">
         <div class="panel-head">
